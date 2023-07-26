@@ -29,7 +29,6 @@ def restart_and_reconnect():
   machine.reset()
 
 try:
-  global client_id, mqtt_server
   client = MQTTClient(client_id, mqtt_server, port = 8883,
                       user=b"predev_user",
                       password=b"sehpi3-Mobsyr-jojkym")
