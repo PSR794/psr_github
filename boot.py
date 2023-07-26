@@ -4,4 +4,4 @@
 #import webrepl
 #webrepl.start()
 import ugit
-ugit.pull_all()
+
