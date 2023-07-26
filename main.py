@@ -36,7 +36,7 @@ try:
   try:
     JSON =  { "tenant": "trident", "data": { "order": "order of 32", "station": "station of 32",
                                                                         "confirmations": { "user_filter_key": "Key of 32",
-                                                                                        "user_filter_values": ["I am 32...ESP32"], "yield_quantity": 32 } } }
+                                                                                        "user_filter_values": ["I am 32...esp32"], "yield_quantity": 32 } } }
     json_payload = json.dumps(JSON)
     client.publish(topic_pub, json_payload)
     
