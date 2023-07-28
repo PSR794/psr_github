@@ -14,24 +14,6 @@ from mfrc522 import MFRC522
 from machine import Pin
 from machine import SPI
 
-def restart_and_reconnect():
-  print('Failed to connect to MQTT broker. Reconnecting...')
-  time.sleep(5)
-  client = MQTTClient(b"client2", mqtt_server, port = 1883,
-                          user=b"abc",#b"predev_user",
-                          password=b"abc")#b"sehpi3-Mobsyr-jojkym"
-
-  connect_mqtt(client)
-
-def connect_mqtt(client):
-    try:
-      print('trying to connect')
-
-      client.connect()
-        
-    except OSError as e:
-      restart_and_reconnect()
-
 def do_connect():
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
@@ -44,6 +26,31 @@ def do_connect():
         
     print('network config:', wlan.ifconfig())
 
+def sub_cb(topic, msg):
+  print((topic, msg))
+  if topic == b'ESP1/Updates' and msg == b'reboot':
+    print('I am 32....ESP32')
+    machine.reset()
+
+def debug_led(n,f):
+    i = 0
+    while i<n:
+        led.value(1)
+        time.sleep(f)
+        led.value(0)
+        i+=1
+    
+def client_reconnect():
+    while True:
+        try:
+            client.connect()
+            debug_led(2,0.5)
+            break
+        except OSError as e:
+            print("MQTT Disconnected with error: ",e)
+            
+        time.sleep(15)                    
+
 led = machine.Pin(2, machine.Pin.OUT)
 ssid = 'FAI GF 2.4GHz'
 password = 'F@ctri4321'
@@ -53,20 +60,32 @@ mqtt_server = b"192.168.100.121"#b"b-4a6fc5ce-85ec-440f-8582-11553261333b-1.mq.a
 client_id = ubinascii.hexlify(machine.unique_id()) # gets ID
 print(client_id)
 topic_pub = b'Assembly1/Rfid_2'#b'factri/predev/trident/budhni/sheeting/csp/eton1/rpi1/rfid'# # toppic name
+topic_sub = b'ESP1/Updates'
 client = MQTTClient(b"client2", mqtt_server, port = 1883,
                           user=b"abc",#b"predev_user",
                           password=b"abc")#b"sehpi3-Mobsyr-jojkym"
-connect_mqtt(client)
+
+client.set_callback(sub_cb)
+while True:
+    try:
+        print("connecting...")
+        client.connect()
+        debug_led(1,1)
+        break
+    except OSError as e:
+        print("MQTT Disconnected with error: ",e)
+        
+    time.sleep(10)
+    
 
 spi = SPI(2, baudrate=2500000, polarity=0, phase=0)
 spi.init()
 rdr = MFRC522(spi=spi, gpioRst=4, gpioCs=5)
 print("Place card")
-led.value(1)
-time.sleep(1)
-led.value(0)
-while True:    
+
+while True:
     (stat, tag_type) = rdr.request(rdr.REQIDL)
+    
     if stat == rdr.OK:
         (stat, raw_uid) = rdr.anticoll()
         if stat == rdr.OK:
@@ -83,26 +102,13 @@ while True:
               json_payload = json.dumps(JSON)
               client.publish(topic_pub, json_payload)
               print(card_id," published!")
-              led.value(1)
-              time.sleep(0.5)
-              led.value(0)
+              debug_led(1,0.5)
             except :
                 print('some error')
-            
-                while True:
-                    try:
-                        client.connect()
-                        led.value(1)
-                        time.sleep(0.2)
-                        led.value(0)
-                        led.value(1)
-                        time.sleep(0.2)
-                        led.value(0)
-                        break
-                    except OSError as e:
-                        print("MQTT Disconnected with error: ",e)
-                        
-                    time.sleep(15)                    
-                
                 continue
+    try:
+        client.subscribe(topic_sub)
+    except OSError as e:
+        client_reconnect()
+            
 
