@@ -76,9 +76,10 @@ while True:
             if len(card_id) == 9:
                 card_id = '0' + card_id
             try:                      
-              JSON =  { "tenant": "clg", "data": { "order": "IoTOrder", "station": "IoTStation",
-                                                                                "confirmations": { "custom_form_field": "rfid_tag",
-                                                                                                "custom_form_field_values": [card_id], "yield_quantity": 0 } } }
+              JSON =  { "data": { "order": "IoTOrder", "station": "IoTStation",
+                                  "confirmations": { "custom_form_field_values": [card_id],
+                                                     "custom_form_field": "rfid_tag",
+                                                     "yield_quantity": 0} }, "tenant": "clg"}
               json_payload = json.dumps(JSON)
               client.publish(topic_pub, json_payload)
               print(card_id," published!")
