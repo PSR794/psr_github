@@ -54,7 +54,7 @@ def client_reconnect():
 led = machine.Pin(2, machine.Pin.OUT)
 ssid = 'FAI GF 2.4GHz'
 password = 'F@ctri4321'
-do_connect()
+#do_connect()
 
 mqtt_server = b"192.168.100.121"#b"b-4a6fc5ce-85ec-440f-8582-11553261333b-1.mq.ap-south-1.amazonaws.com"#
 client_id = ubinascii.hexlify(machine.unique_id()) # gets ID
